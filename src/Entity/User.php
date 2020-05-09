@@ -8,10 +8,21 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert; 
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+
 
 /**
- * @ApiResource()
+ * @ApiResource(
+ * itemOperations={"GET","DELETE"},
+ * collectionOperations={"GET","POST"},
+ * normalizationContext={
+ *  "groups"={"read"}
+ * }
+ * )
  * @ORM\Entity(repositoryClass=UserRepository::class)
+ * @UniqueEntity("email")
  */
 class User implements UserInterface
 {
@@ -19,42 +30,57 @@ class User implements UserInterface
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Groups({"read"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=120)
+     * @Groups({"read"})
+     * @Assert\NotBlank(message="champ nom est obligatoire")
+     * @Assert\Length(min=6, max=20, minMessage="ce champ doit avoir au moins {{ limit }} chars",maxMessage="ce champs ne doit pas dépasser {{ limit }} chars")
+     * @Assert\Regex(pattern="/^[a-z]+$/i", message="le champ ne respecte pas le pattern")
      */
     private $nom;
 
     /**
      * @ORM\Column(type="string", length=120)
+     * @Groups({"read"})
+     * @Assert\NotBlank(message="champ prenom est obligatoire")
+     * @Assert\Length(min=6, max=20, minMessage="ce champ doit avoir au moins {{ limit }} chars",maxMessage="ce champs ne doit pas dépasser {{ limit }} chars")
      */
     private $prenom;
 
     /**
      * @ORM\Column(type="string", length=120)
+     * @Assert\NotBlank(message="champ email est obligatoire")
+     * @Assert\Email(message = "le email {{ value }} ne pas valider")
      */
     private $email;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\NotBlank(message="champ fonction est obligatoire")
      */
     private $fonction;
 
     /**
      * @ORM\Column(type="string",length=150)
+     * @Assert\NotBlank(message="champ password est obligatoire")
      */
     private $password;
 
     /**
      * @ORM\Column(type="datetime")
+     * @Groups({"read"})
+     * @Assert\NotBlank()
      */
     private $createdAt;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Departement", inversedBy="users")
      * @ORM\JoinColumn(nullable=true)
+     * @Groups({"read"})
      */
     private $serv;
 

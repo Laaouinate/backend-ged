@@ -7,6 +7,8 @@ use App\Repository\DocumentRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert; 
+
 
 /**
  * @ApiResource()
@@ -23,16 +25,18 @@ class Document
 
     /**
      * @ORM\Column(type="string", length=255)
+     *  @Assert\NotBlank(message="champ numero document est obligatoire")
      */
     private $numdecument;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\NotBlank(message="champ information est obligatoire")
      */
     private $information;
 
     /**
-     * @ORM\Column(type="text")
+     * @ORM\Column(type="text", nullable=true)
      */
     private $commentaire;
 
