@@ -3,15 +3,23 @@
 namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Annotation\ApiSubresource;
 use App\Repository\DepartementRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert; 
 
 
 /**
- * @ApiResource()
+ * @ApiResource(
+ * itemOperations={"GET"= {"access_control"="is_granted('IS_AUTHENTICATED_FULLY')"}
+ *                  ,"DELETE"
+ *                  ,"PUT"={"access_control"="is_granted('IS_AUTHENTICATED_FULLY')"}},
+ * collectionOperations={"GET"={"access_control"="is_granted('IS_AUTHENTICATED_FULLY')"}
+ *                      ,"POST"={"access_control"="is_granted('IS_AUTHENTICATED_FULLY')"}},
+ * )
  * @ORM\Entity(repositoryClass=DepartementRepository::class)
  */
 class Departement
@@ -26,6 +34,7 @@ class Departement
     /**
      * @ORM\Column(type="string", length=120)
      * @Assert\NotBlank(message="champ nom service est obligatoire")
+     * @Groups({"get-doc-with-user"})
      */
     private $description;
 
@@ -36,13 +45,13 @@ class Departement
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\User", mappedBy="serv")
-     * 
+     * @ApiSubresource()
      */
     private $users;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Typedocument", mappedBy="service")
-     * 
+     * @ApiSubresource()
      */
     private $Typedocs;
 

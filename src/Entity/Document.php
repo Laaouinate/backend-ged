@@ -3,15 +3,33 @@
 namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Annotation\ApiSubresource;
 use App\Repository\DocumentRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints as Assert; 
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Serializer\Annotation\Groups;
+
 
 
 /**
- * @ApiResource()
+ * @ApiResource(
+ * itemOperations={"GET"={"access_control"="is_granted('IS_AUTHENTICATED_FULLY')",
+ *                 "normalization_context"={"groups"={"get-doc-with-user"}}     }
+ *              ,"DELETE","PUT"={
+ *      "access_control"="is_granted('IS_AUTHENTICATED_FULLY') and object.getUser()==user"
+ * }
+ * },
+ * collectionOperations={"GET"={"access_control"="is_granted('IS_AUTHENTICATED_FULLY')",
+ *          "normalization_context"={"groups"={"get-doc-with-user"}} }
+ * ,"POST"={"access_control"="is_granted('IS_AUTHENTICATED_FULLY')"}},
+ *      subresourceOperations={
+ *  "api_users_docs_tdocuments_get_subresource"={"normalization_context"={"groups"={"get-doc-with-user"}}}
+ *   
+ *  
+ * }
+ * )
  * @ORM\Entity(repositoryClass=DocumentRepository::class)
  */
 class Document
@@ -25,18 +43,21 @@ class Document
 
     /**
      * @ORM\Column(type="string", length=255)
-     *  @Assert\NotBlank(message="champ numero document est obligatoire")
+     * @Assert\NotBlank(message="champ numero document est obligatoire")
+     * @Groups("get-doc-with-user")
      */
     private $numdecument;
 
     /**
      * @ORM\Column(type="string", length=255)
      * @Assert\NotBlank(message="champ information est obligatoire")
+     * @Groups("get-doc-with-user")
      */
     private $information;
 
     /**
      * @ORM\Column(type="text", nullable=true)
+     * @Groups("get-doc-with-user")
      */
     private $commentaire;
 
@@ -47,13 +68,15 @@ class Document
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="docs")
-     * @ORM\JoinColumn(nullable=true)
+     * @ORM\JoinColumn(nullable=false)
+     * @Groups("get-doc-with-user")
      */
     private $user;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Typedocument", mappedBy="archive")
-     * 
+     * @ApiSubresource()
+     * @Groups("get-doc-with-user")
      */
     private $tdocuments;
 

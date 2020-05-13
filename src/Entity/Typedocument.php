@@ -8,9 +8,17 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert; 
+use Symfony\Component\Serializer\Annotation\Groups;
+
 
 /**
- * @ApiResource()
+ * @ApiResource(
+ * itemOperations={"GET"={"access_control"="is_granted('IS_AUTHENTICATED_FULLY')"}
+ *                ,"DELETE",
+ *                 "PUT"={"access_control"="is_granted('IS_AUTHENTICATED_FULLY')"}},
+ * collectionOperations={"GET"={"access_control"="is_granted('IS_AUTHENTICATED_FULLY')"}
+ *                      ,"POST"={"access_control"="is_granted('IS_AUTHENTICATED_FULLY')"}},
+ * )
  * @ORM\Entity(repositoryClass=TypedocumentRepository::class)
  */
 class Typedocument
@@ -25,6 +33,7 @@ class Typedocument
     /**
      * @ORM\Column(type="string", length=150)
      * @Assert\NotBlank(message="champ description est obligatoire")
+     * @Groups({"get-doc-with-user"})
      */
     private $descriptiontype;
 

@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Annotation\ApiSubresource;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -15,28 +16,52 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * @ApiResource(
- * itemOperations={"GET","DELETE"},
- * collectionOperations={"GET","POST"},
- * normalizationContext={
- *  "groups"={"read"}
+ * itemOperations={
+ * "GET"={
+ *      "access_control"="is_granted('IS_AUTHENTICATED_FULLY')",
+ *      "normalization_context"=
+ *     {
+ *      "groups"={"get"}
+ *     }
  * }
+ * ,"DELETE","PUT"={
+ *          "access_control"="is_granted('IS_AUTHENTICATED_FULLY')",
+ *          "denormalization_context"={
+ *                                    "groups"={"put"}
+ *                                    },
+ *          "normalization_context"={"groups"={"get"}}
+ *                 }},
+ * collectionOperations={"GET"={
+ *      "access_control"="is_granted('IS_AUTHENTICATED_FULLY')"}
+ * ,"POST"={"access_control"="is_granted('IS_AUTHENTICATED_FULLY')",
+ *       "denormalization_context"={
+ *                                    "groups"={"post"}
+ *                                  },
+ *      "normalization_context"={"groups"={"get"}}
+ * }}
  * )
  * @ORM\Entity(repositoryClass=UserRepository::class)
  * @UniqueEntity("email")
  */
 class User implements UserInterface
 {
+    const ROLE_AGENT = "ROLE_AGENT";
+    const ROLE_ADMIN = "ROLE_ADMIN";
+    const ROLE_SUPERADMIN = "ROLE_SUPERADMIN";
+
+    const DEFAULT_ROLES=[self::ROLE_AGENT];
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
-     * @Groups({"read"})
+     * @Groups({"get","put","post"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=120)
-     * @Groups({"read"})
+     * @Groups({"get","put","post","get-doc-with-user"})
      * @Assert\NotBlank(message="champ nom est obligatoire")
      * @Assert\Length(min=6, max=20, minMessage="ce champ doit avoir au moins {{ limit }} chars",maxMessage="ce champs ne doit pas dépasser {{ limit }} chars")
      * @Assert\Regex(pattern="/^[a-z]+$/i", message="le champ ne respecte pas le pattern")
@@ -45,7 +70,7 @@ class User implements UserInterface
 
     /**
      * @ORM\Column(type="string", length=120)
-     * @Groups({"read"})
+     * @Groups({"get","put","post"})
      * @Assert\NotBlank(message="champ prenom est obligatoire")
      * @Assert\Length(min=6, max=20, minMessage="ce champ doit avoir au moins {{ limit }} chars",maxMessage="ce champs ne doit pas dépasser {{ limit }} chars")
      */
@@ -53,6 +78,7 @@ class User implements UserInterface
 
     /**
      * @ORM\Column(type="string", length=120)
+     * @Groups({"get","post"})
      * @Assert\NotBlank(message="champ email est obligatoire")
      * @Assert\Email(message = "le email {{ value }} ne pas valider")
      */
@@ -60,19 +86,21 @@ class User implements UserInterface
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"get","put","post"})
      * @Assert\NotBlank(message="champ fonction est obligatoire")
      */
     private $fonction;
 
     /**
      * @ORM\Column(type="string",length=150)
+     * @Groups({"post","put"})
      * @Assert\NotBlank(message="champ password est obligatoire")
      */
     private $password;
 
     /**
      * @ORM\Column(type="datetime")
-     * @Groups({"read"})
+     * @Groups({"read","put","post"})
      * @Assert\NotBlank()
      */
     private $createdAt;
@@ -80,19 +108,26 @@ class User implements UserInterface
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Departement", inversedBy="users")
      * @ORM\JoinColumn(nullable=true)
-     * @Groups({"read"})
+     * @Groups({"get","put","post","get-doc-with-user"})
      */
     private $serv;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Document", mappedBy="user")
-     * 
+     * @ApiSubresource()
+     * @Groups({"get"})
      */
     private $docs;
+
+    /**
+     * @ORM\Column(type="simple_array", length=200, nullable=true)
+     */
+    private $roles;
 
     public function __construct()
     {
         $this->docs = new ArrayCollection();
+        $this->roles = self::DEFAULT_ROLES;
     }
 
     public function getId(): ?int
@@ -229,9 +264,14 @@ class User implements UserInterface
      *
      * @return (Role|string)[] The user roles
      */
-    public function getRoles()
+    public function getRoles(): array
     {
-        return ['ROLE_USER'];
+        return $this->roles;
+    }
+
+    public function setRoles(array $roles)
+    {
+        $this->roles = $roles;
     }
 
     /**
