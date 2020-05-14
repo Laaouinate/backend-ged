@@ -46,6 +46,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 class User implements UserInterface
 {
     const ROLE_AGENT = "ROLE_AGENT";
+    const ROLE_EDITOR = "ROLE_EDITOR";
     const ROLE_ADMIN = "ROLE_ADMIN";
     const ROLE_SUPERADMIN = "ROLE_SUPERADMIN";
 

@@ -43,10 +43,9 @@ class Typedocument
     private $createdAt;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Document", inversedBy="tdocuments")
-     * @ORM\JoinColumn(nullable=true)
+     * @ORM\OneToMany(targetEntity="App\Entity\Document", mappedBy="archive")
      */
-    private $archive;
+    private $tdocuments;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Departement", inversedBy="Typedocs")
@@ -102,17 +101,35 @@ class Typedocument
         return $this;
     }
 
-    public function getArchive(): ?Document
+    /**
+     * @return Collection|Document[]
+     */
+    public function getTdocuments(): Collection
     {
-        return $this->archive;
+        return $this->tdocuments;
     }
 
-    public function setArchive(?Document $archive): self
+    public function addTdocument(Document $tdocument): self
     {
-        $this->archive = $archive;
+        if (!$this->tdocuments->contains($tdocument)) {
+            $this->tdocuments[] = $tdocument;
+            $tdocument->setArchive($this);
+        }
 
         return $this;
     }
 
+    public function removeTdocument(Document $tdocument): self
+    {
+        if ($this->tdocuments->contains($tdocument)) {
+            $this->tdocuments->removeElement($tdocument);
+            // set the owning side to null (unless already changed)
+            if ($tdocument->getArchive() === $this) {
+                $tdocument->setArchive(null);
+            }
+        }
+
+        return $this;
+    }
    
 }

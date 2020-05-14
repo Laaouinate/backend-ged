@@ -31,8 +31,9 @@ class AppFixtures extends Fixture
         // $manager->flush();
         $this->serviceload($manager);
         $this->userload($manager);
-        $this->docload($manager);
         $this->typeload($manager);
+        $this->docload($manager);
+        
     }
 
     public function userload(ObjectManager $manager)
@@ -73,6 +74,28 @@ class AppFixtures extends Fixture
             $manager->flush();
     }
 
+
+    public function typeload(ObjectManager $manager)
+    {
+        for($i = 0;$i < 3;$i++)
+        {
+            $typedocument = new Typedocument;
+            $typedocument->setDescriptiontype($this->faker->sentence());
+            $typedocument->setCreatedAt(new \DateTime());
+
+            // $document = $this->getReference("doc_" . rand(0, 7));
+            // $typedocument->setArchive($document);
+
+            $this->addReference("doc_$i",$typedocument);
+
+            $deprt = $this->getReference("service_" . rand(0, 3));
+            $typedocument->setService($deprt);
+
+            $manager->persist($typedocument);
+        }
+            $manager->flush();
+    }
+
     public function docload(ObjectManager $manager)
     {
         for($i = 0;$i < 8;$i++)
@@ -87,29 +110,15 @@ class AppFixtures extends Fixture
             $user = $this->getReference("utilisateur_" . rand(0, 9));
             $document->setUser($user);
 
-            $this->addReference("doc_$i",$document);
+            // $this->addReference("doc_$i",$document);
+
+            $typedocument = $this->getReference("doc_" . rand(0,3));
+            $document->setArchive($typedocument);
 
             $manager->persist($document);
         }
             $manager->flush();
     }
 
-    public function typeload(ObjectManager $manager)
-    {
-        for($i = 0;$i < 3;$i++)
-        {
-            $typedocument = new Typedocument;
-            $typedocument->setDescriptiontype($this->faker->sentence());
-            $typedocument->setCreatedAt(new \DateTime());
 
-            $document = $this->getReference("doc_" . rand(0, 7));
-            $typedocument->setArchive($document);
-
-            $deprt = $this->getReference("service_" . rand(0, 3));
-            $typedocument->setService($deprt);
-
-            $manager->persist($typedocument);
-        }
-            $manager->flush();
-    }
 }

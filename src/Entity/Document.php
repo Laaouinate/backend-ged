@@ -18,12 +18,12 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * itemOperations={"GET"={"access_control"="is_granted('IS_AUTHENTICATED_FULLY')",
  *                 "normalization_context"={"groups"={"get-doc-with-user"}}     }
  *              ,"DELETE","PUT"={
- *      "access_control"="is_granted('IS_AUTHENTICATED_FULLY') and object.getUser()==user"
+ *      "access_control"=" is_granted('ROLE_EDITOR') or (is_granted('ROLE_AGENT') and object.getUser()==user)"
  * }
  * },
  * collectionOperations={"GET"={"access_control"="is_granted('IS_AUTHENTICATED_FULLY')",
  *          "normalization_context"={"groups"={"get-doc-with-user"}} }
- * ,"POST"={"access_control"="is_granted('IS_AUTHENTICATED_FULLY')"}},
+ * ,"POST"={"access_control"="is_granted('ROLE_AGENT')"}},
  *      subresourceOperations={
  *  "api_users_docs_tdocuments_get_subresource"={"normalization_context"={"groups"={"get-doc-with-user"}}}
  *   
@@ -74,16 +74,11 @@ class Document
     private $user;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Typedocument", mappedBy="archive")
-     * @ApiSubresource()
+     * @ORM\ManyToOne(targetEntity="App\Entity\Typedocument", inversedBy="tdocuments")
+     * @ORM\JoinColumn(nullable=true)
      * @Groups("get-doc-with-user")
      */
-    private $tdocuments;
-
-    public function __construct()
-    {
-        $this->tdocuments = new ArrayCollection();
-    }
+    private $archive;
 
 
     public function getId(): ?int
@@ -151,38 +146,15 @@ class Document
         return $this;
     }
 
-    /**
-     * @return Collection|Typedocument[]
-     */
-    public function getTdocuments(): Collection
+    public function getArchive(): ?Typedocument
     {
-        return $this->tdocuments;
+        return $this->archive;
     }
 
-    public function addTdocument(Typedocument $tdocument): self
+    public function setArchive(?Typedocument $archive): self
     {
-        if (!$this->tdocuments->contains($tdocument)) {
-            $this->tdocuments[] = $tdocument;
-            $tdocument->setArchive($this);
-        }
+        $this->archive = $archive;
 
         return $this;
     }
-
-    public function removeTdocument(Typedocument $tdocument): self
-    {
-        if ($this->tdocuments->contains($tdocument)) {
-            $this->tdocuments->removeElement($tdocument);
-            // set the owning side to null (unless already changed)
-            if ($tdocument->getArchive() === $this) {
-                $tdocument->setArchive(null);
-            }
-        }
-
-        return $this;
-    }
-
-   
-
-
 }
