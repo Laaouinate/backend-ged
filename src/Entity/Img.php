@@ -8,6 +8,8 @@ use Doctrine\ORM\Mapping as ORM;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 use Symfony\Component\Validator\Constraints as Assert; 
 use App\Controller\UploadImageAction;
+use Symfony\Component\Serializer\Annotation\Groups;
+
 
 
 /**
@@ -22,7 +24,8 @@ use App\Controller\UploadImageAction;
  *          "controller"=UploadImageAction::class,
  *          "defaults" = {"_api_receive"=false}
  *             }
- *      }
+ *      },
+ *      itemOperations={"GET"}
  * )
  * @ORM\Entity(repositoryClass=ImgRepository::class)
  * @Vich\Uploadable()
@@ -44,6 +47,7 @@ class Img
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
+     * @Groups("get-doc-with-user")
      */
     private $url;
 

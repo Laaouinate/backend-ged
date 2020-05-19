@@ -81,6 +81,14 @@ class Document
     private $archive;
 
 
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\Img")
+     * @ORM\JoinColumn(name="img_id", referencedColumnName="id", nullable=true)
+     * @Groups("get-doc-with-user")
+     */
+    private $img;
+
+
     public function getId(): ?int
     {
         return $this->id;
@@ -154,6 +162,18 @@ class Document
     public function setArchive(?Typedocument $archive): self
     {
         $this->archive = $archive;
+
+        return $this;
+    }
+
+    public function getImg(): ?Img
+    {
+        return $this->img;
+    }
+
+    public function setImg(?Img $img): self
+    {
+        $this->img = $img;
 
         return $this;
     }
